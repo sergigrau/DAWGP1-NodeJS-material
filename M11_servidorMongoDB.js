@@ -11,20 +11,21 @@
  * - Connecta amb MongoDB i realitza diverses operacions CRUD
  * 06.04.2017
  * - millora la sortida de les operacions realitzades amb mongodb
+ * 01.11.2021
+ * - actualització a client MongoDB 4.x  
  * NOTES
  * ORIGEN
  * Desenvolupament Aplicacions Web. Jesuïtes el Clot
  */
-var http = require("http");
-var url = require("url");
-var fs = require('fs');
+let http = require("http");
+let fs = require('fs');
 
-var MongoClient = require('mongodb').MongoClient;
-var assert = require('assert'); //utilitzem assercions
+let MongoClient = require('mongodb').MongoClient;
+let assert = require('assert'); //utilitzem assercions
 
-var ObjectId = require('mongodb').ObjectID;
+let ObjectId = require('mongodb').ObjectID;
 
-var crud = {
+let crud = {
     afegirDocument: function (alumne, db, err, callback) {
 
     }
@@ -32,10 +33,12 @@ var crud = {
 
 function iniciar() {
     function onRequest(request, response) {
-        var sortida;
-        var ruta = url.parse(request.url).pathname;
-        var consulta = url.parse(request.url, true).query;
-        console.log("Petició per a  " + ruta + " rebuda.");
+        let sortida;
+        const baseURL = request.protocol + '://' + request.headers.host + '/';
+        const reqUrl = new URL(request.url, baseURL);
+        console.log("Petició per a  " + reqUrl.pathname + " rebuda.");
+        const ruta = reqUrl.pathname;
+        let cadenaConnexio = 'mongodb://localhost:27017/daw2';
 
         if (ruta == '/inici') {
             fs.readFile('./M11_mongoDB.html', function (err, sortida) {
@@ -47,45 +50,46 @@ function iniciar() {
             });
         }
         else if (ruta == '/desa') {
-            var ruta = 'mongodb://localhost:27017/daw2';
-
-
-            MongoClient.connect(ruta, function (err, db) {
+            MongoClient.connect(cadenaConnexio, function (err, client) {
                 assert.equal(null, err);
                 console.log("Connexió correcta");
+                var db = client.db('daw2');
                 db.collection('usuaris').insertOne({
-                    "nom": consulta.nom
+                    "nom": reqUrl.searchParams.get('nom')
                 });
                 assert.equal(err, null);
                 console.log("Afegit document a col·lecció usuaris");
+               
 
             });
         }
         else if (ruta == '/consulta') {
-            var ruta = 'mongodb://localhost:27017/daw2';
-
-
-            MongoClient.connect(ruta, function (err, db) {
+            MongoClient.connect(cadenaConnexio, function (err, client) {
                 assert.equal(null, err);
                 console.log("Connexió correcta");
+                var db = client.db('daw2');
 
                 response.writeHead(200, {
                     "Content-Type": "text/html; charset=utf-8"
                 });
                 console.log("consulta document a col·lecció usuaris");
 
-                var cursor = db.collection('usuaris').find({});
-                cursor.each(function (err, doc) {
+                let cursor = db.collection('usuaris').find({});
+
+                cursor.toArray((function (err, results) {
                     assert.equal(err, null);
-                    if (doc != null) {
-                        response.write(doc.nom + '<br>');
-                    }
-                    else {
+                    if (results != null) {
+                        results.forEach((doc) => {
+                            response.write(`nom ${doc.nom} <br>`);
+                        });
+                    } else {
                         response.end();
                     }
-                });
-            });
+                }));
+               
 
+            });
+            
         }
 
         else {
@@ -96,6 +100,7 @@ function iniciar() {
             response.write(sortida);
             response.end();
         }
+
 
     }
 

@@ -11,25 +11,27 @@
  * - Connecta amb MongoDB i realitza diverses operacions CRUD
  * 06.04.2017
  * - millora la sortida de les operacions realitzades amb mongodb
+ * 01.11.2021
+ * - actualització a client MongoDB 4.x 
  * NOTES
  * ORIGEN
  * Desenvolupament Aplicacions Web. Jesuïtes el Clot
  */
-var http = require("http");
-var url = require("url");
+let http = require("http");
+let url = require("url");
 
-var MongoClient = require('mongodb').MongoClient;
-var assert = require('assert'); //utilitzem assercions
+let MongoClient = require('mongodb').MongoClient;
+let assert = require('assert'); //utilitzem assercions
 
-var ObjectId = require('mongodb').ObjectID;
+let ObjectId = require('mongodb').ObjectID;
 
 function iniciar() {
 
-    var ruta = 'mongodb://localhost:27017/daw2';
+    let ruta = 'mongodb://localhost:27017/daw2';
     MongoClient.connect(ruta, function (err, client) {
         assert.equal(null, err);
         console.log("Connexió correcta");
-        var db = client.db('usuaris');
+        let db = client.db('daw2');
         afegirDocuments(db, err, function () { });
         //consultarDocumentMenor40(db, err, function () { });
         consultarDocument(db, err, function () { });
@@ -44,26 +46,26 @@ function iniciar() {
         const baseURL = req.protocol + '://' + req.headers.host + '/';
         const reqUrl = new URL(req.url, baseURL);
         console.log("Petició per a  " + reqUrl.pathname + " rebuda.");
-        response.writeHead(200, {
+        resresponse.writeHead(200, {
             "Content-Type": "text/plain; charset=utf-8"
         });
-        response.write('camí: ' + ruta + '\n');
+        res.write('camí: ' + ruta + '\n');
 
-        var consulta = reqUrl.searchParams;
+        let consulta = reqUrl.searchParams;
         console.log(consulta);
 
         consulta.forEach(function (valor, clau) {
             res.write('parametre: ' + clau + '\n');
             res.write('valor: ' + valor + '\n');
 
-        }); response.end();
+        }); res.end();
     }
 
     http.createServer(onRequest).listen(8888);
     console.log("Servidor iniciat.");
 }
 
-var afegirDocuments = function (db, err, callback) {
+let afegirDocuments = function (db, err, callback) {
     db.collection('usuaris').insertOne({
         "nom": "sergi",
         "anys": 45,
@@ -80,16 +82,16 @@ var afegirDocuments = function (db, err, callback) {
 
 };
 
-var consultarDocument = function (db, err, callback) {
-    var cursor = db.collection('usuaris').find({
+let consultarDocument = function (db, err, callback) {
+    let cursor = db.collection('usuaris').find({
         "nom": "sergi"
     });
     cursor.toArray((function (err, results) {
         assert.equal(err, null);
 
-        
+
         if (results != null) {
-            results.forEach((doc)=>{
+            results.forEach((doc) => {
                 console.log(`nom ${doc.nom} i anys ${doc.anys}`);
 
             });
@@ -99,8 +101,8 @@ var consultarDocument = function (db, err, callback) {
     }));
 };
 
-var consultarDocumentMenor40 = function (db, err, callback) {
-    var cursor = db.collection('usuaris').find({
+let consultarDocumentMenor40 = function (db, err, callback) {
+    let cursor = db.collection('usuaris').find({
         "anys": {
             $lt: 40
         }
@@ -115,7 +117,7 @@ var consultarDocumentMenor40 = function (db, err, callback) {
     });
 };
 
-var esborrarTotsDocuments = function (db, err, callback) {
+let esborrarTotsDocuments = function (db, err, callback) {
     db.collection('usuaris').deleteMany({}, function (err, results) {
         //console.log(results);
         callback();
