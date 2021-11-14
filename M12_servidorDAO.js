@@ -11,8 +11,11 @@ var url = require("url");
 
 function iniciar() {
     function onRequest(request, response) {
-        var ruta = url.parse(request.url).pathname;
-        console.log("Petició per a  " + ruta + " rebuda.");
+		const baseURL = request.protocol + '://' + request.headers.host + '/';
+        const reqUrl = new URL(request.url, baseURL);
+		const ruta = reqUrl.pathname;
+
+		console.log("Petició per a  " + ruta + " rebuda.");
         response.writeHead(200, {
             "Content-Type": "text/html; charset=utf-8"
         });
